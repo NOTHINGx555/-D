@@ -1,12 +1,4 @@
---game verfy
-local gameId = game.PlaceId
 
-if gameId == 12177325772 then
-    print("welcome 💀")
-else
-    warn("Error: You must join the Super League Soccer game!")
-    game:Shutdown() -- Zatrzymuje skrypt, kończąc działanie gry
-end
 
 
 --delete 
@@ -40,6 +32,7 @@ deleteScreen(challengesWidget)
 
 
 
+--color change stamina and power 
 --color change stamina and power 
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui", 10)
@@ -93,7 +86,7 @@ if power then
         end
         -- Create a new UIGradient with red to white, transitioning from left to right
         local newPowerGradient = Instance.new("UIGradient")
-        newPowerGradient.Color = ColorSequence.new(Color3.new(1, 0, 0), Color3.new(1, 1, 1))  -- Red to White
+        newPowerGradient.Color = ColorSequence.new(Color3.new(0, 0, 0), Color3.new(255, 0, 0))  -- Red to White
         newPowerGradient.Rotation = 90  -- Left-to-right gradient
         newPowerGradient.Parent = powerProgressBar
         print("set color power")
@@ -114,7 +107,7 @@ if stamina then
         end
         -- Create a new UIGradient with white to black, transitioning from left to right
         local newStaminaGradient = Instance.new("UIGradient")
-        newStaminaGradient.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(0, 0, 0))  -- White to Black
+        newStaminaGradient.Color = ColorSequence.new(Color3.new(0, 0, 0), Color3.new(255,255,255))  -- White to Black
         newStaminaGradient.Rotation = 90  -- Left-to-right gradient
         newStaminaGradient.Parent = staminaProgressBar
         print("set color stamina")
