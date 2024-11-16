@@ -507,8 +507,8 @@ local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.
 
 -- Create window
 local Window = Fluent:CreateWindow({
-    Title = "☠️",
-    SubTitle = "VIP",
+    Title = "NOTHING",
+    SubTitle = "💀☠️",
     TabWidth = 150,
     Size = UDim2.fromOffset(550, 450),
     Acrylic = false,
