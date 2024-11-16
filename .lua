@@ -724,9 +724,9 @@ end
 -- Add a slider to control the kick speed
 local Slider = Tabs.Main:AddInput("Slider", {
     Title = "Speed",
-    Description = "10-1000",
+    Description = "20-1000",
     Default = 50,
-    Min = 10,
+    Min = 20,
     Max = 1000,
     Rounding = 1,
     Callback = function(Value)
@@ -737,9 +737,9 @@ local Slider = Tabs.Main:AddInput("Slider", {
 -- Add a slider to control the vertical move amount for the ball
 local VerticalSlider = Tabs.Main:AddInput("VerticalSlider", {
     Title = "up|down",
-    Description = "10-555",
+    Description = "20-600",
     Default = 50,  -- Default vertical move amount
-    Min = 10,  -- Minimum move amount
+    Min = 20,  -- Minimum move amount
     Max = 600,  -- Maximum move amount
     Rounding = 1,
     Callback = function(Value)
