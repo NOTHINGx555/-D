@@ -184,7 +184,7 @@ end
 -- Przełączanie widoku kamery po naciśnięciu klawisza "3"
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.Three then
+    if input.KeyCode == Enum.KeyCode.Two then
         ToggleCameraView()
     end
 end)
