@@ -138,15 +138,21 @@ local maxDistance = 50     -- Maksymalna odległość kamery
 local originalCameraCFrame = Camera.CFrame
 local originalCameraSubject = Camera.CameraSubject
 
+local isSearchingForFootball = false -- Flaga do jednorazowego wyświetlenia komunikatu
+
 -- Funkcja do znalezienia nowego obiektu Football
 function FindFootball()
+    isSearchingForFootball = true -- Ustaw flagę, że rozpoczęto szukanie
+    print("Football was removed, searching for a new one...")
+    
     while true do
-        -- Czekaj aż nowy obiekt piłki pojawi się w Workspace
         footballPart = workspace:FindFirstChild("Junk") and workspace.Junk:FindFirstChild("Football")
         if footballPart then
+            print("Found new Football")
+            isSearchingForFootball = false -- Reset flagi po znalezieniu piłki
             break
         end
-        task.wait(0.5)  -- Sprawdza co 0.5 sekundy, aby nie przeciążać silnika
+        task.wait(0.5)
     end
 end
 
@@ -158,21 +164,18 @@ function ToggleCameraView()
     fcRunning = not fcRunning
 
     if fcRunning then
-        -- Zapisanie oryginalnej pozycji i trybu kamery
         originalCameraCFrame = Camera.CFrame
         originalCameraSubject = Camera.CameraSubject
-        Camera.CameraType = Enum.CameraType.Scriptable  -- Przełącz na wolną kamerę
+        Camera.CameraType = Enum.CameraType.Scriptable
         print("Freecam On")
     else
-        -- Powrót kamery do gracza lub nowego Football
         local character = player.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
-            Camera.CameraType = Enum.CameraType.Custom  -- Przywróć tryb kamery gracza
+            Camera.CameraType = Enum.CameraType.Custom
             Camera.CameraSubject = character:FindFirstChild("Humanoid")
             Camera.CFrame = originalCameraCFrame
             print("Freecam Off")
         elseif footballPart then
-            -- Jeśli gracz nie istnieje, wróć do piłki
             Camera.CameraSubject = footballPart
         end
     end
@@ -181,7 +184,7 @@ end
 -- Przełączanie widoku kamery po naciśnięciu klawisza "3"
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.Two then
+    if input.KeyCode == Enum.KeyCode.Three then
         ToggleCameraView()
     end
 end)
@@ -190,11 +193,9 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if fcRunning then
         if input.UserInputType == Enum.UserInputType.MouseMovement then
-            -- Obracanie kamery za pomocą myszy
             cameraRotation = cameraRotation + Vector2.new(-input.Delta.X, -input.Delta.Y) * 0.3
-            cameraRotation = Vector2.new(cameraRotation.X, math.clamp(cameraRotation.Y, -80, 80)) -- Ogranicz obrót w pionie
+            cameraRotation = Vector2.new(cameraRotation.X, math.clamp(cameraRotation.Y, -80, 80))
         elseif input.UserInputType == Enum.UserInputType.MouseWheel then
-            -- Zoomowanie kamery
             cameraDistance = math.clamp(cameraDistance - input.Position.Z * 2, minDistance, maxDistance)
         end
     end
@@ -206,21 +207,21 @@ RunService.RenderStepped:Connect(function()
         local yaw = math.rad(cameraRotation.X)
         local pitch = math.rad(cameraRotation.Y)
 
-        -- Obliczanie pozycji kamery wokół piłki
         local offset = Vector3.new(
             math.sin(yaw) * math.cos(pitch) * cameraDistance,
             math.sin(pitch) * cameraDistance,
             math.cos(yaw) * math.cos(pitch) * cameraDistance
         )
-        
-        -- Ustawienie kamery, aby patrzyła na piłkę
+
         local cameraPos = footballPart.Position + offset + Vector3.new(0, cameraHeight, 0)
         Camera.CFrame = CFrame.new(cameraPos, footballPart.Position)
     end
 
     -- Sprawdza, czy obecny `Football` nadal istnieje
     if not footballPart or not footballPart:IsDescendantOf(workspace) then
-        FindFootball() -- Znajdź nową piłkę
+        if not isSearchingForFootball then
+            FindFootball() -- Rozpocznij wyszukiwanie nowej piłki
+        end
     end
 end)
 
