@@ -132,37 +132,48 @@ local function findBall()
 end
 
 -- Function to teleport the ball to the specific coordinates
-local function teleportBall(targetPosition)
+local function teleportBall(targetPosition, scoringTeam)
     local ball = findBall()
     if ball then
         ball.Position = targetPosition
+
+        if scoringTeam == "Home" then
+            print("Home")
+        elseif scoringTeam == "Away" then
+            print("Away")
+        end
 
         local remoteEvent = replicatedStorage:FindFirstChild(UNIQUE_EVENT_NAME)
         if remoteEvent then
             remoteEvent:FireServer(targetPosition)
         end
+    else
+        print("Ball not found")
     end
 end
 
 -- Function to get the target position based on the player's team
 local function getTargetPosition()
     if player.Team and player.Team.Name == "Home" then
-        return Vector3.new(2.010676682, 4.00001144, -186.170898) -- Home team's coordinates
+        return Vector3.new(2.010676682, 4.00001144, -186.170898), "Home" -- Home team's coordinates
     elseif player.Team and player.Team.Name == "Away" then
-        return Vector3.new(-0.214612424, 4.00001144, 186.203613) -- Away team's coordinates
+        return Vector3.new(-0.214612424, 4.00001144, 186.203613), "Away" -- Away team's coordinates
+    else
+        print("NONE")
     end
-    return nil
+    return nil, nil
 end
 
 -- Event listener for key press
 userInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.G and not gameProcessed then
-        local targetPosition = getTargetPosition()
+        local targetPosition, scoringTeam = getTargetPosition()
         if targetPosition then
-            teleportBall(targetPosition)
+            teleportBall(targetPosition, scoringTeam)
         end
     end
 end)
+
 
 
 --camera 2 ball
@@ -212,14 +223,14 @@ function ToggleCameraView()
         originalCameraCFrame = Camera.CFrame
         originalCameraSubject = Camera.CameraSubject
         Camera.CameraType = Enum.CameraType.Scriptable
-        print("Freecam On")
+        print("camera ball On")
     else
         local character = player.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
             Camera.CameraType = Enum.CameraType.Custom
             Camera.CameraSubject = character:FindFirstChild("Humanoid")
             Camera.CFrame = originalCameraCFrame
-            print("Freecam Off")
+            print("camera ball Off")
         elseif footballPart then
             Camera.CameraSubject = footballPart
         end
