@@ -1,6 +1,4 @@
 
-
-
 --delete 
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -27,12 +25,6 @@ deleteScreen(keyHintsFrame)
 deleteScreen(challengesWidget)
 
 
-
-
-
-
-
---color change stamina and power 
 --color change stamina and power 
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui", 10)
@@ -118,9 +110,62 @@ else
     warn("Stamina not found")
 end
 
+--- gol G away and home auto 
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local userInputService = game:GetService("UserInputService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Unique identifier for this specific functionality
+local UNIQUE_EVENT_NAME = "UpdateBallPosition_Specific"
+
+-- Function to find the ball in the Junk folder
+local function findBall()
+    local junkFolder = game.Workspace:FindFirstChild("Junk")
+    if junkFolder then
+        local football = junkFolder:FindFirstChild("Football")
+        if football and football:IsA("Part") then
+            return football
+        end
+    end
+    return nil
+end
+
+-- Function to teleport the ball to the specific coordinates
+local function teleportBall(targetPosition)
+    local ball = findBall()
+    if ball then
+        ball.Position = targetPosition
+
+        local remoteEvent = replicatedStorage:FindFirstChild(UNIQUE_EVENT_NAME)
+        if remoteEvent then
+            remoteEvent:FireServer(targetPosition)
+        end
+    end
+end
+
+-- Function to get the target position based on the player's team
+local function getTargetPosition()
+    if player.Team and player.Team.Name == "Home" then
+        return Vector3.new(2.010676682, 4.00001144, -186.170898) -- Home team's coordinates
+    elseif player.Team and player.Team.Name == "Away" then
+        return Vector3.new(-0.214612424, 4.00001144, 186.203613) -- Away team's coordinates
+    end
+    return nil
+end
+
+-- Event listener for key press
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.G and not gameProcessed then
+        local targetPosition = getTargetPosition()
+        if targetPosition then
+            teleportBall(targetPosition)
+        end
+    end
+end)
 
 
---camera 3 ball
+--camera 2 ball
 
 local fcRunning = false  -- Tryb kamery jest początkowo wyłączony
 local Camera = workspace.CurrentCamera
@@ -226,59 +271,6 @@ RunService.RenderStepped:Connect(function()
 end)
 
 
---- gol G away and home auto 
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local userInputService = game:GetService("UserInputService")
-local replicatedStorage = game:GetService("ReplicatedStorage")
-
--- Unique identifier for this specific functionality
-local UNIQUE_EVENT_NAME = "UpdateBallPosition_Specific"
-
--- Function to find the ball in the Junk folder
-local function findBall()
-    local junkFolder = game.Workspace:FindFirstChild("Junk")
-    if junkFolder then
-        local football = junkFolder:FindFirstChild("Football")
-        if football and football:IsA("Part") then
-            return football
-        end
-    end
-    return nil
-end
-
--- Function to teleport the ball to the specific coordinates
-local function teleportBall(targetPosition)
-    local ball = findBall()
-    if ball then
-        ball.Position = targetPosition
-
-        local remoteEvent = replicatedStorage:FindFirstChild(UNIQUE_EVENT_NAME)
-        if remoteEvent then
-            remoteEvent:FireServer(targetPosition)
-        end
-    end
-end
-
--- Function to get the target position based on the player's team
-local function getTargetPosition()
-    if player.Team and player.Team.Name == "Home" then
-        return Vector3.new(2.010676682, 4.00001144, -186.170898) -- Home team's coordinates
-    elseif player.Team and player.Team.Name == "Away" then
-        return Vector3.new(-0.214612424, 4.00001144, 186.203613) -- Away team's coordinates
-    end
-    return nil
-end
-
--- Event listener for key press
-userInputService.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.G and not gameProcessed then
-        local targetPosition = getTargetPosition()
-        if targetPosition then
-            teleportBall(targetPosition)
-        end
-    end
-end)
 
 
 
