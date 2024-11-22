@@ -7,7 +7,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 local gameGui = playerGui:FindFirstChild("GameGui") -- We are specifically targeting GameGui here
 local transitionFrame = gameGui:FindFirstChild("Transition")
 local keyHintsFrame = gameGui:FindFirstChild("KeyHints")
-local challengesWidget = gameGui:FindFirstChild("ChallengesWidget")
+
 
 -- Funkcja do usuwania ekranów
 local function deleteScreen(screen)
@@ -22,7 +22,7 @@ end
 -- Usuwanie Transition, KeyHints i ChallengesWidget z GameGui
 deleteScreen(transitionFrame)
 deleteScreen(keyHintsFrame)
-deleteScreen(challengesWidget)
+
 
 
 --color change stamina and power 
