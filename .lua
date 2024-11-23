@@ -164,6 +164,11 @@ local function getTargetPosition()
     return nil, nil
 end
 
+-- Update character reference when it changes (e.g., after reset)
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+end)
+
 -- Event listener for key press
 userInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.G and not gameProcessed then
@@ -173,6 +178,7 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
 end)
+
 
 
 
