@@ -844,58 +844,6 @@ InterfaceManager:SetLibrary(Fluent)
 InterfaceManager:SetFolder("FluentScriptHub")
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 
-Window:SelectTab(3)
+Window:SelectTab(1)
 
-
-
-
-
-
-
-
---TackleHitbox size 10, 38, 6
-local function checkAndSetTackleHitboxSize(character)
-    -- Czekamy na TackleHitbox w postaci gracza
-    local hitbox = character:FindFirstChild("TackleHitbox")
-    
-    -- Sprawdzamy, czy hitbox istnieje
-    if hitbox then
-        -- Sprawdzamy, czy rozmiar hitboxu nie jest już równy (10, 38, 6)
-        if hitbox.Size ~= Vector3.new(10, 38, 6) then
-            -- Jeśli rozmiar jest inny, ustawiamy go na (10, 38, 6)
-            hitbox.Size = Vector3.new(10, 38, 6)
-        end
-    end
-end
-
--- Funkcja do ustawiania rozmiaru hitboxu przy każdym respawnie gracza
-game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
-    -- Czekamy na w pełni załadowaną postać, zanim zaczniemy manipulować
-    local hitbox = character:WaitForChild("TackleHitbox")  -- Czekamy aż TackleHitbox będzie dostępny
-    -- Po respawnie sprawdzamy i ustawiamy rozmiar TackleHitbox
-    checkAndSetTackleHitboxSize(character)
-end)
-
--- Pętla, która regularnie sprawdza i ustawia rozmiar TackleHitbox
-local function loopCheckAndSetTackleHitboxSize()
-    -- Pobieramy postać gracza
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()  -- Czekamy na postać, jeśli jeszcze nie istnieje
-
-    -- Sprawdzamy rozmiar TackleHitbox w pętli
-    while true do
-        -- Sprawdzamy i ustawiamy rozmiar TackleHitbox na (10, 38, 6) jeśli jest potrzebne
-        checkAndSetTackleHitboxSize(character)
-        
-        -- Czekamy 1 sekundę przed kolejną iteracją
-        wait(0.5)
-        
-        -- Jeśli postać została zmieniona (np. po respawnie), zaktualizuj postać
-        if not character.Parent then
-            character = game.Players.LocalPlayer.CharacterAdded:Wait()
-        end
-    end
-end
-
--- Rozpoczynamy pętlę sprawdzania i ustawiania rozmiaru hitboxu
-loopCheckAndSetTackleHitboxSize()
+warn "end"
