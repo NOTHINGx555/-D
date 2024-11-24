@@ -423,6 +423,38 @@ end
 game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
 
 
+local function checkAndSetTackleHitboxSize(hitbox)
+    -- Sprawdzamy, czy rozmiar hitboxu nie jest już równy (10, 38, 6)
+    if hitbox.Size ~= Vector3.new(10, 38, 6) then
+        -- Jeśli rozmiar jest inny, ustawiamy go na (10, 38, 6)
+        hitbox.Size = Vector3.new(10, 38, 6)
+    end
+end
+
+-- Funkcja do obsługi postaci gracza
+local function onCharacterAdded(character)
+    -- Czekamy na obiekt TackleHitbox w postaci gracza
+    local hitbox = character:WaitForChild("TackleHitbox", 5)  -- Timeout 5 sekund dla bezpieczeństwa
+    
+    if hitbox then
+        -- Ustawiamy poprawny rozmiar hitboxu
+        checkAndSetTackleHitboxSize(hitbox)
+        
+        -- Obserwujemy zmiany rozmiaru i automatycznie poprawiamy je, jeśli zajdzie potrzeba
+        hitbox:GetPropertyChangedSignal("Size"):Connect(function()
+            checkAndSetTackleHitboxSize(hitbox)
+        end)
+    end
+end
+
+-- Podpinamy obsługę zdarzenia do LocalPlayer
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(onCharacterAdded)
+
+-- Jeśli postać już istnieje, obsługujemy ją od razu
+if player.Character then
+    onCharacterAdded(player.Character)
+end
 
 
 
