@@ -1,114 +1,68 @@
 
---delete 
+--delete  and set color stamina and power
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- Referencje do GameGui
-local gameGui = playerGui:FindFirstChild("GameGui") -- We are specifically targeting GameGui here
-local transitionFrame = gameGui:FindFirstChild("Transition")
-local keyHintsFrame = gameGui:FindFirstChild("KeyHints")
-
+local gameGui = playerGui:FindFirstChild("GameGui")
+if not gameGui then
+    warn("GameGui not found")
+    return
+end
 
 -- Funkcja do usuwania ekranów
 local function deleteScreen(screen)
     if screen then
         screen:Destroy()
-        print(screen.Name .. " delete")
+        print(screen.Name .. " deleted")
     else
-        print("Not found " .. screen.Name)
+        warn("-")
     end
 end
 
--- Usuwanie Transition, KeyHints i ChallengesWidget z GameGui
-deleteScreen(transitionFrame)
-deleteScreen(keyHintsFrame)
+-- Usuwanie Transition, KeyHints
+deleteScreen(gameGui:FindFirstChild("Transition"))
+deleteScreen(gameGui:FindFirstChild("KeyHints"))
 
-
-
---color change stamina and power 
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui", 10)
-
-if playerGui then
-    -- PlayerGui found
-else
-    warn("PlayerGui not found")
-    return
-end
-
--- Reference GameGui in PlayerGui
-local gameGui = playerGui:WaitForChild("GameGui", 10)
-if gameGui then
-    -- GameGui found
-else
-    warn("GameGui not found")
-    return
-end
-
--- Reference MatchHUD in GameGui
-local matchHUD = gameGui:WaitForChild("MatchHUD", 10)
-if matchHUD then
-    -- MatchHUD found
-else
+-- Referencje do MatchHUD i EnergyBars
+local matchHUD = gameGui:FindFirstChild("MatchHUD")
+if not matchHUD then
     warn("MatchHUD not found")
     return
 end
 
--- Reference EnergyBars in MatchHUD
-local energyBars = matchHUD:WaitForChild("EngergyBars", 10)
-if energyBars then
-    -- EnergyBars found
-else
+local energyBars = matchHUD:FindFirstChild("EngergyBars")
+if not energyBars then
     warn("EnergyBars not found")
     return
 end
 
--- Reference Power and Stamina frames in EnergyBars
-local power = energyBars:WaitForChild("Power", 10)
-local stamina = energyBars:WaitForChild("Stamina", 10)
-
--- Check if each element is found and handle it accordingly
-if power then
-    -- Delete existing UIGradient in Power, if it exists
-    local powerProgressBar = power:FindFirstChild("ProgressBar")
-    if powerProgressBar then
-        local existingUIGradient = powerProgressBar:FindFirstChild("UIGradient")
-        if existingUIGradient then
-            existingUIGradient:Destroy()
+-- Funkcja do ustawiania gradientu
+local function setGradient(frame, startColor, endColor)
+    if frame then
+        local progressBar = frame:FindFirstChild("ProgressBar")
+        if progressBar then
+            local existingGradient = progressBar:FindFirstChild("UIGradient")
+            if existingGradient then
+                existingGradient:Destroy()
+            end
+            local newGradient = Instance.new("UIGradient")
+            newGradient.Color = ColorSequence.new(startColor, endColor)
+            newGradient.Rotation = 90
+            newGradient.Parent = progressBar
+            print("Set Color " .. frame.Name)
+        else
+            warn(frame.Name .. " ProgressBar not found")
         end
-        -- Create a new UIGradient with red to white, transitioning from left to right
-        local newPowerGradient = Instance.new("UIGradient")
-        newPowerGradient.Color = ColorSequence.new(Color3.new(0, 0, 0), Color3.new(255, 0, 0))  -- Red to White
-        newPowerGradient.Rotation = 90  -- Left-to-right gradient
-        newPowerGradient.Parent = powerProgressBar
-        print("set color power")
     else
-        warn("Power ProgressBar not found")
+        warn(frame.Name .. " not found")
     end
-else
-    warn("Power not found")
 end
 
-if stamina then
-    -- Delete existing UIGradient in Stamina, if it exists
-    local staminaProgressBar = stamina:FindFirstChild("ProgressBar")
-    if staminaProgressBar then
-        local existingUIGradient = staminaProgressBar:FindFirstChild("UIGradient")
-        if existingUIGradient then
-            existingUIGradient:Destroy()
-        end
-        -- Create a new UIGradient with white to black, transitioning from left to right
-        local newStaminaGradient = Instance.new("UIGradient")
-        newStaminaGradient.Color = ColorSequence.new(Color3.new(0, 0, 0), Color3.new(255,255,255))  -- White to Black
-        newStaminaGradient.Rotation = 90  -- Left-to-right gradient
-        newStaminaGradient.Parent = staminaProgressBar
-        print("set color stamina")
-    else
-        warn("Stamina ProgressBar not found")
-    end
-else
-    warn("Stamina not found")
-end
+-- Ustawienie gradientu dla Power i Stamina
+setGradient(energyBars:FindFirstChild("Power"), Color3.new(0, 0, 0), Color3.new(1, 0, 0)) -- Black to Red
+setGradient(energyBars:FindFirstChild("Stamina"), Color3.new(0, 0, 0), Color3.new(1, 1, 1)) -- Black to White
+
 
 --- gol G away and home auto 
 local player = game.Players.LocalPlayer
@@ -291,26 +245,29 @@ end)
 
 
 
-
---hig 
+--tp ball and hig
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local movementAndSpeedEnabled = false
 local hipHeightEnabled = false
 
+local Player = Players.LocalPlayer
+
 -- Function to toggle the hip height of the humanoid
 local function toggleHipHeight()
-    local character = Players.LocalPlayer.Character
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-
-    if humanoid then
-        if hipHeightEnabled then
-            humanoid.HipHeight = humanoid.HipHeight - 16
-        else
-            humanoid.HipHeight = humanoid.HipHeight + 16
+    local character = Player.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            if hipHeightEnabled then
+                humanoid.HipHeight = humanoid.HipHeight - 16
+            else
+                humanoid.HipHeight = humanoid.HipHeight + 16
+            end
+            hipHeightEnabled = not hipHeightEnabled
         end
-        hipHeightEnabled = not hipHeightEnabled
     end
 end
 
@@ -320,26 +277,7 @@ local function toggleMovementAndSpeed()
     toggleHipHeight()
 end
 
--- Connect keybinds and events
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-
-    if input.KeyCode == Enum.KeyCode.H then
-        toggleMovementAndSpeed()
-    end
-end)
-
-
-
----tp ball leftctrl
-
-
-
-local Player = game.Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
-
--- Function to move the parts to the player's position
+-- Function to move specific parts to the player's position
 local function movePartsToPlayer()
     local junkFolder = Workspace:FindFirstChild("Junk")
     
@@ -360,11 +298,13 @@ local function movePartsToPlayer()
     end
 end
 
--- Connect input event
+-- Connect keybinds and events
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
-    if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+    if input.KeyCode == Enum.KeyCode.H then
+        toggleMovementAndSpeed()
+    elseif input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
         movePartsToPlayer()
     end
 end)
@@ -511,14 +451,46 @@ game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
 
 
 
--- Load Fluent UI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--gui
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 -- Create window
 local Window = Fluent:CreateWindow({
-    Title = "NOTHING",
-    SubTitle = "💀☠️",
+    Title = "FR",
+    SubTitle = "",
     TabWidth = 150,
     Size = UDim2.fromOffset(550, 450),
     Acrylic = false,
