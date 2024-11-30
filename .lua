@@ -1,4 +1,4 @@
-
+warn ("start")
 --delete  and set color stamina and power
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -134,112 +134,40 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 
+--ball track
+local function checkAndSetTackleHitboxSize(hitbox)
+    -- Sprawdzamy, czy rozmiar hitboxu nie jest już równy (10, 38, 6)
+    if hitbox.Size ~= Vector3.new(10, 38, 6) then
+        -- Jeśli rozmiar jest inny, ustawiamy go na (10, 38, 6)
+        hitbox.Size = Vector3.new(10, 38, 6)
+    end
+end
 
-
---camera 2 ball
-
-local fcRunning = false  -- Tryb kamery jest początkowo wyłączony
-local Camera = workspace.CurrentCamera
-local player = game.Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
-local footballPart = nil -- Aktualna piłka
-local cameraDistance = 20  -- Odległość kamery od piłki
-local cameraHeight = 10    -- Wysokość kamery nad piłką
-local cameraRotation = Vector2.new()  -- Kąt kamery (X, Y)
-local minDistance = 5      -- Minimalna odległość kamery
-local maxDistance = 50     -- Maksymalna odległość kamery
-
-local originalCameraCFrame = Camera.CFrame
-local originalCameraSubject = Camera.CameraSubject
-
-local isSearchingForFootball = false -- Flaga do jednorazowego wyświetlenia komunikatu
-
--- Funkcja do znalezienia nowego obiektu Football
-function FindFootball()
-    isSearchingForFootball = true -- Ustaw flagę, że rozpoczęto szukanie
-    print("Football was removed, searching for a new one...")
+-- Funkcja do obsługi postaci gracza
+local function onCharacterAdded(character)
+    -- Czekamy na obiekt TackleHitbox w postaci gracza
+    local hitbox = character:WaitForChild("TackleHitbox", 5)  -- Timeout 5 sekund dla bezpieczeństwa
     
-    while true do
-        footballPart = workspace:FindFirstChild("Junk") and workspace.Junk:FindFirstChild("Football")
-        if footballPart then
-            print("Found new Football")
-            isSearchingForFootball = false -- Reset flagi po znalezieniu piłki
-            break
-        end
-        task.wait(0.5)
+    if hitbox then
+        -- Ustawiamy poprawny rozmiar hitboxu
+        checkAndSetTackleHitboxSize(hitbox)
+        
+        -- Obserwujemy zmiany rozmiaru i automatycznie poprawiamy je, jeśli zajdzie potrzeba
+        hitbox:GetPropertyChangedSignal("Size"):Connect(function()
+            checkAndSetTackleHitboxSize(hitbox)
+        end)
     end
 end
 
--- Wywołanie funkcji, aby znaleźć piłkę na początku
-FindFootball()
+-- Podpinamy obsługę zdarzenia do LocalPlayer
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(onCharacterAdded)
 
--- Funkcja do przełączania widoku kamery
-function ToggleCameraView()
-    fcRunning = not fcRunning
-
-    if fcRunning then
-        originalCameraCFrame = Camera.CFrame
-        originalCameraSubject = Camera.CameraSubject
-        Camera.CameraType = Enum.CameraType.Scriptable
-        print("camera ball On")
-    else
-        local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            Camera.CameraType = Enum.CameraType.Custom
-            Camera.CameraSubject = character:FindFirstChild("Humanoid")
-            Camera.CFrame = originalCameraCFrame
-            print("camera ball Off")
-        elseif footballPart then
-            Camera.CameraSubject = footballPart
-        end
-    end
+-- Jeśli postać już istnieje, obsługujemy ją od razu
+if player.Character then
+    onCharacterAdded(player.Character)
 end
 
--- Przełączanie widoku kamery po naciśnięciu klawisza "3"
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.Two then
-        ToggleCameraView()
-    end
-end)
-
--- Obsługa ruchu myszką i kółka myszy do sterowania kamerą
-UserInputService.InputChanged:Connect(function(input)
-    if fcRunning then
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            cameraRotation = cameraRotation + Vector2.new(-input.Delta.X, -input.Delta.Y) * 0.3
-            cameraRotation = Vector2.new(cameraRotation.X, math.clamp(cameraRotation.Y, -80, 80))
-        elseif input.UserInputType == Enum.UserInputType.MouseWheel then
-            cameraDistance = math.clamp(cameraDistance - input.Position.Z * 2, minDistance, maxDistance)
-        end
-    end
-end)
-
--- Aktualizacja pozycji kamery w trybie freecam
-RunService.RenderStepped:Connect(function()
-    if fcRunning and footballPart then
-        local yaw = math.rad(cameraRotation.X)
-        local pitch = math.rad(cameraRotation.Y)
-
-        local offset = Vector3.new(
-            math.sin(yaw) * math.cos(pitch) * cameraDistance,
-            math.sin(pitch) * cameraDistance,
-            math.cos(yaw) * math.cos(pitch) * cameraDistance
-        )
-
-        local cameraPos = footballPart.Position + offset + Vector3.new(0, cameraHeight, 0)
-        Camera.CFrame = CFrame.new(cameraPos, footballPart.Position)
-    end
-
-    -- Sprawdza, czy obecny `Football` nadal istnieje
-    if not footballPart or not footballPart:IsDescendantOf(workspace) then
-        if not isSearchingForFootball then
-            FindFootball() -- Rozpocznij wyszukiwanie nowej piłki
-        end
-    end
-end)
 
 
 
@@ -423,96 +351,113 @@ end
 game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
 
 
-local function checkAndSetTackleHitboxSize(hitbox)
-    -- Sprawdzamy, czy rozmiar hitboxu nie jest już równy (10, 38, 6)
-    if hitbox.Size ~= Vector3.new(10, 38, 6) then
-        -- Jeśli rozmiar jest inny, ustawiamy go na (10, 38, 6)
-        hitbox.Size = Vector3.new(10, 38, 6)
-    end
-end
 
--- Funkcja do obsługi postaci gracza
-local function onCharacterAdded(character)
-    -- Czekamy na obiekt TackleHitbox w postaci gracza
-    local hitbox = character:WaitForChild("TackleHitbox", 5)  -- Timeout 5 sekund dla bezpieczeństwa
-    
-    if hitbox then
-        -- Ustawiamy poprawny rozmiar hitboxu
-        checkAndSetTackleHitboxSize(hitbox)
-        
-        -- Obserwujemy zmiany rozmiaru i automatycznie poprawiamy je, jeśli zajdzie potrzeba
-        hitbox:GetPropertyChangedSignal("Size"):Connect(function()
-            checkAndSetTackleHitboxSize(hitbox)
-        end)
-    end
-end
 
--- Podpinamy obsługę zdarzenia do LocalPlayer
+
+--camera 2 ball
+
+local fcRunning = false  -- Tryb kamery jest początkowo wyłączony
+local Camera = workspace.CurrentCamera
 local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(onCharacterAdded)
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
--- Jeśli postać już istnieje, obsługujemy ją od razu
-if player.Character then
-    onCharacterAdded(player.Character)
+local footballPart = nil -- Aktualna piłka
+local cameraDistance = 20  -- Odległość kamery od piłki
+local cameraHeight = 10    -- Wysokość kamery nad piłką
+local cameraRotation = Vector2.new()  -- Kąt kamery (X, Y)
+local minDistance = 5      -- Minimalna odległość kamery
+local maxDistance = 50     -- Maksymalna odległość kamery
+
+local originalCameraCFrame = Camera.CFrame
+local originalCameraSubject = Camera.CameraSubject
+
+local isSearchingForFootball = false -- Flaga do jednorazowego wyświetlenia komunikatu
+
+-- Funkcja do znalezienia nowego obiektu Football
+function FindFootball()
+    isSearchingForFootball = true -- Ustaw flagę, że rozpoczęto szukanie
+    print("Football was removed, searching for a new one...")
+    
+    while true do
+        footballPart = workspace:FindFirstChild("Junk") and workspace.Junk:FindFirstChild("Football")
+        if footballPart then
+            print("Found new Football")
+            isSearchingForFootball = false -- Reset flagi po znalezieniu piłki
+            break
+        end
+        task.wait(0.5)
+    end
 end
 
+-- Wywołanie funkcji, aby znaleźć piłkę na początku
+FindFootball()
 
+-- Funkcja do przełączania widoku kamery
+function ToggleCameraView()
+    fcRunning = not fcRunning
 
+    if fcRunning then
+        originalCameraCFrame = Camera.CFrame
+        originalCameraSubject = Camera.CameraSubject
+        Camera.CameraType = Enum.CameraType.Scriptable
+        print("camera ball On")
+    else
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            Camera.CameraType = Enum.CameraType.Custom
+            Camera.CameraSubject = character:FindFirstChild("Humanoid")
+            Camera.CFrame = originalCameraCFrame
+            print("camera ball Off")
+        elseif footballPart then
+            Camera.CameraSubject = footballPart
+        end
+    end
+end
 
+-- Przełączanie widoku kamery po naciśnięciu klawisza "3"
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Two then
+        ToggleCameraView()
+    end
+end)
 
+-- Obsługa ruchu myszką i kółka myszy do sterowania kamerą
+UserInputService.InputChanged:Connect(function(input)
+    if fcRunning then
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            cameraRotation = cameraRotation + Vector2.new(-input.Delta.X, -input.Delta.Y) * 0.3
+            cameraRotation = Vector2.new(cameraRotation.X, math.clamp(cameraRotation.Y, -80, 80))
+        elseif input.UserInputType == Enum.UserInputType.MouseWheel then
+            cameraDistance = math.clamp(cameraDistance - input.Position.Z * 2, minDistance, maxDistance)
+        end
+    end
+end)
 
+-- Aktualizacja pozycji kamery w trybie freecam
+RunService.RenderStepped:Connect(function()
+    if fcRunning and footballPart then
+        local yaw = math.rad(cameraRotation.X)
+        local pitch = math.rad(cameraRotation.Y)
 
+        local offset = Vector3.new(
+            math.sin(yaw) * math.cos(pitch) * cameraDistance,
+            math.sin(pitch) * cameraDistance,
+            math.cos(yaw) * math.cos(pitch) * cameraDistance
+        )
 
+        local cameraPos = footballPart.Position + offset + Vector3.new(0, cameraHeight, 0)
+        Camera.CFrame = CFrame.new(cameraPos, footballPart.Position)
+    end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    -- Sprawdza, czy obecny `Football` nadal istnieje
+    if not footballPart or not footballPart:IsDescendantOf(workspace) then
+        if not isSearchingForFootball then
+            FindFootball() -- Rozpocznij wyszukiwanie nowej piłki
+        end
+    end
+end)
 
 
 --gui
@@ -878,4 +823,4 @@ InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
-warn "end"
+warn ("end")
