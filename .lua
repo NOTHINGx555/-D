@@ -350,7 +350,38 @@ end
 -- Podłączenie funkcji do zdarzenia wciśnięcia klawisza
 game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
 
+warn ("beta v2 speed load")
+--beta speed 
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
 
+-- Prędkość bazowa
+local defaultSpeed = humanoid.WalkSpeed
+
+-- Boost prędkości
+local boostSpeed = 150 -- Zmienna dla boosta
+local boostDuration = 0.4 -- Czas trwania boosta w sekundach
+local waitTime = 0.6 -- Czas oczekiwania przed aktywacją boosta
+
+-- Funkcja do aktywowania boosta
+local function activateBoost()
+    wait(waitTime) -- Czeka 1.5 sekundy przed aktywacją boosta
+    humanoid.WalkSpeed = boostSpeed
+    wait(boostDuration)
+    humanoid.WalkSpeed = defaultSpeed
+end
+
+-- Przykład aktywacji boosta po kliknięciu
+local userInputService = game:GetService("UserInputService")
+
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Three then
+            activateBoost()
+        end
+    end
+end)
 
 
 
