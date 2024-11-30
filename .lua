@@ -360,16 +360,24 @@ local humanoid = character:WaitForChild("Humanoid")
 local defaultSpeed = humanoid.WalkSpeed
 
 -- Boost prędkości
-local boostSpeed = 150 -- Zmienna dla boosta
-local boostDuration = 0.4 -- Czas trwania boosta w sekundach
-local waitTime = 0.6 -- Czas oczekiwania przed aktywacją boosta
+local boostSpeed = 250 -- Zmienna dla boosta
+local boostDuration = 0.3 -- Czas trwania boosta w sekundach
+local waitTime = 0.7 -- Czas oczekiwania przed aktywacją boosta
+
+-- Zmienna do zapobiegania spamowi
+local canActivateBoost = true
 
 -- Funkcja do aktywowania boosta
 local function activateBoost()
-    wait(waitTime) -- Czeka 1.5 sekundy przed aktywacją boosta
-    humanoid.WalkSpeed = boostSpeed
-    wait(boostDuration)
-    humanoid.WalkSpeed = defaultSpeed
+    if canActivateBoost then
+        canActivateBoost = false -- Zablokuj kolejne aktywacje
+        wait(waitTime) -- Czeka przed aktywacją boosta
+        humanoid.WalkSpeed = boostSpeed
+        wait(boostDuration)
+        humanoid.WalkSpeed = defaultSpeed
+        wait(waitTime) -- Czeka przed ponowną aktywacją
+        canActivateBoost = true -- Pozwól na kolejną aktywację
+    end
 end
 
 -- Przykład aktywacji boosta po kliknięciu
@@ -382,6 +390,7 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
 end)
+
 
 
 
