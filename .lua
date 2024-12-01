@@ -64,22 +64,12 @@ end
 setGradient(energyBars:FindFirstChild("Power"), Color3.new(0, 0, 0), Color3.new(255, 0, 0)) -- Black to Red
 setGradient(energyBars:FindFirstChild("Stamina"), Color3.new(0, 0, 0), Color3.new(255, 255, 255)) -- Black to White
 
-
-
---gol + tp ball + hig
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Player = Players.LocalPlayer
-local movementAndSpeedEnabled = false
-local hipHeightEnabled = false
 
--- Unique identifier for this specific functionality
-local UNIQUE_EVENT_NAME = "UpdateBallPosition_Specific"
-
--- Function to find all balls in the Junk folder
+-- Function to find all footballs in the Junk folder
 local function findBalls()
     local junkFolder = Workspace:FindFirstChild("Junk")
     local balls = {}
@@ -93,31 +83,51 @@ local function findBalls()
     return balls
 end
 
--- Function to teleport all balls to the specific coordinates
-local function teleportAllBalls(targetPosition)
-    local balls = findBalls()
-    if #balls > 0 then
-        for _, ball in pairs(balls) do
-            ball.Position = targetPosition
-        end
+-- Function to teleport all balls to a "very hard" position based on the player's team
+local function teleportAllBalls()
+    local targetPosition = nil
 
-        -- Fire the remote event to notify the server of the new positions
-        local remoteEvent = ReplicatedStorage:FindFirstChild(UNIQUE_EVENT_NAME)
-        if remoteEvent then
-            remoteEvent:FireServer(targetPosition)
+    -- Check player's team and set "very hard" target positions
+    if Player.Team then
+        if Player.Team.Name == "Home" then
+            targetPosition = Vector3.new(2.010676682, 4.00001144, -186.170898)  -- Home team's "very hard" position
+        elseif Player.Team.Name == "Away" then
+            targetPosition = Vector3.new(-0.214612424, 4.00001144, 186.203613)  -- Away team's "very hard" position
         end
+    end
+
+    if targetPosition then
+        local balls = findBalls()
+        if #balls > 0 then
+            for _, ball in pairs(balls) do
+                ball.CFrame = CFrame.new(targetPosition) -- Teleport the ball to the "very hard" position
+            end
+        else
+            warn("Not found ball")  -- If no balls are found
+        end
+    else
     end
 end
 
--- Function to get the target position based on the player's team
-local function getTargetPosition()
-    if Player.Team and Player.Team.Name == "Home" then
-        return Vector3.new(2.010676682, 4.00001144, -186.170898) -- Home team's coordinates
-    elseif Player.Team and Player.Team.Name == "Away" then
-        return Vector3.new(-0.214612424, 4.00001144, 186.203613) -- Away team's coordinates
+-- Trigger the teleportation when the user presses 'G'
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.G then
+        teleportAllBalls()
     end
-    return nil
-end
+end)
+
+
+
+--tp ball and hig
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local movementAndSpeedEnabled = false
+local hipHeightEnabled = false
+
+local Player = Players.LocalPlayer
 
 -- Function to toggle the hip height of the humanoid
 local function toggleHipHeight()
@@ -125,13 +135,17 @@ local function toggleHipHeight()
     if character then
         local humanoid = character:FindFirstChildOfClass("Humanoid")
         if humanoid then
-            humanoid.HipHeight = hipHeightEnabled and humanoid.HipHeight - 16 or humanoid.HipHeight + 16
+            if hipHeightEnabled then
+                humanoid.HipHeight = humanoid.HipHeight - 16
+            else
+                humanoid.HipHeight = humanoid.HipHeight + 16
+            end
             hipHeightEnabled = not hipHeightEnabled
         end
     end
 end
 
--- Function to toggle movement and speed
+-- Function to toggle the movement and speed script
 local function toggleMovementAndSpeed()
     movementAndSpeedEnabled = not movementAndSpeedEnabled
     toggleHipHeight()
@@ -140,43 +154,32 @@ end
 -- Function to move specific parts to the player's position
 local function movePartsToPlayer()
     local junkFolder = Workspace:FindFirstChild("Junk")
+    
     if junkFolder and junkFolder:IsA("Folder") then
-        local playerPosition = Player.Character.HumanoidRootPart.Position
-        for _, obj in pairs(junkFolder:GetDescendants()) do
-            if obj:IsA("BasePart") and (obj.Name == "kick1" or obj.Name == "kick2" or obj.Name == "kick3" or obj.Name == "Football") then
-                obj.Position = playerPosition
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            local playerPosition = Player.Character.HumanoidRootPart.Position
+            
+            for _, obj in pairs(junkFolder:GetDescendants()) do
+                if obj:IsA("BasePart") and (obj.Name == "kick1" or obj.Name == "kick2" or obj.Name == "kick3" or obj.Name == "Football") then
+                    obj.Position = playerPosition
+                end
             end
+        else
+            print("Player character or HumanoidRootPart not found")
         end
     else
         print("Junk folder not found in Workspace")
     end
 end
 
--- Event listeners for key inputs
+-- Connect keybinds and events
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
-    if input.KeyCode == Enum.KeyCode.G then
-        local targetPosition = getTargetPosition()
-        if targetPosition then
-            teleportAllBalls(targetPosition)
-        end
-    elseif input.KeyCode == Enum.KeyCode.H then
+    if input.KeyCode == Enum.KeyCode.H then
         toggleMovementAndSpeed()
     elseif input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
         movePartsToPlayer()
-    end
-end)
-
--- Update character reference when it changes (e.g., after reset)
-Player.CharacterAdded:Connect(function(newCharacter)
-    Player.Character = newCharacter
-end)
-
--- Detect new footballs being added to Junk (no print statement required)
-Workspace.Junk.ChildAdded:Connect(function(child)
-    if child:IsA("Part") and child.Name == "Football" then
-        -- Silent handling
     end
 end)
 
