@@ -1,5 +1,6 @@
-warn ("start")
-
+warn ("-------------------------------------------------------------------------------------------------------------------")
+warn ("-------------------------------------------------------------------------------------------------------------------")
+warn ("-------------------------------------------------------------------------------------------------------------------")
 
 
 --delete loding... i ustawia kolory Power i Stamina
@@ -10,9 +11,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 local loadingScreen = playerGui:FindFirstChild("LoadingScreen")
 if loadingScreen then
     loadingScreen:Destroy()
-    print("LoadingScreen deleted")
 else
-    print("LoadingScreen not found")
 end
 
 -- Referencje do GameGui
@@ -26,26 +25,19 @@ end
 local function deleteScreen(screen)
     if screen then
         screen:Destroy()
-        print(screen.Name .. " deleted")
-    else
-        warn("-")
     end
 end
 
--- Usuwanie Transition, KeyHints
+-- Usuwanie Transition i KeyHints
 deleteScreen(gameGui:FindFirstChild("Transition"))
 deleteScreen(gameGui:FindFirstChild("KeyHints"))
 
 -- Referencje do MatchHUD i EnergyBars
 local matchHUD = gameGui:FindFirstChild("MatchHUD")
-if not matchHUD then
-    warn("MatchHUD not found")
-    return
-end
+local energyBars = matchHUD and matchHUD:FindFirstChild("EngergyBars")
 
-local energyBars = matchHUD:FindFirstChild("EngergyBars")
-if not energyBars then
-    warn("EnergyBars not found")
+if not (matchHUD and energyBars) then
+    warn("MatchHUD or EnergyBars not found")
     return
 end
 
@@ -62,33 +54,34 @@ local function setGradient(frame, startColor, endColor)
             newGradient.Color = ColorSequence.new(startColor, endColor)
             newGradient.Rotation = 90
             newGradient.Parent = progressBar
-            print("Set Color for " .. frame.Name)
         else
             warn(frame.Name .. " ProgressBar not found")
         end
-    else
-        warn(frame.Name .. " not found")
     end
 end
 
 -- Ustawienie gradientu dla Power i Stamina
-setGradient(energyBars:FindFirstChild("Power"), Color3.new(0, 0, 0), Color3.new(1, 0, 0)) -- Black to Red
-setGradient(energyBars:FindFirstChild("Stamina"), Color3.new(0, 0, 0), Color3.new(1, 1, 1)) -- Black to White
+setGradient(energyBars:FindFirstChild("Power"), Color3.new(0, 0, 0), Color3.new(255, 0, 0)) -- Black to Red
+setGradient(energyBars:FindFirstChild("Stamina"), Color3.new(0, 0, 0), Color3.new(255, 255, 255)) -- Black to White
 
 
 
---- gol G away and home auto 
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local userInputService = game:GetService("UserInputService")
-local replicatedStorage = game:GetService("ReplicatedStorage")
+--gol + tp ball + hig
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local movementAndSpeedEnabled = false
+local hipHeightEnabled = false
 
 -- Unique identifier for this specific functionality
 local UNIQUE_EVENT_NAME = "UpdateBallPosition_Specific"
 
 -- Function to find all balls in the Junk folder
 local function findBalls()
-    local junkFolder = game.Workspace:FindFirstChild("Junk")
+    local junkFolder = Workspace:FindFirstChild("Junk")
     local balls = {}
     if junkFolder then
         for _, obj in pairs(junkFolder:GetChildren()) do
@@ -101,16 +94,15 @@ local function findBalls()
 end
 
 -- Function to teleport all balls to the specific coordinates
-local function teleportAllBalls(targetPosition, scoringTeam)
-    local balls = findBalls()  -- Get all balls in the "Junk" folder
+local function teleportAllBalls(targetPosition)
+    local balls = findBalls()
     if #balls > 0 then
-        -- Teleport each ball to the target position
         for _, ball in pairs(balls) do
             ball.Position = targetPosition
         end
 
         -- Fire the remote event to notify the server of the new positions
-        local remoteEvent = replicatedStorage:FindFirstChild(UNIQUE_EVENT_NAME)
+        local remoteEvent = ReplicatedStorage:FindFirstChild(UNIQUE_EVENT_NAME)
         if remoteEvent then
             remoteEvent:FireServer(targetPosition)
         end
@@ -119,55 +111,13 @@ end
 
 -- Function to get the target position based on the player's team
 local function getTargetPosition()
-    if player.Team and player.Team.Name == "Home" then
-        return Vector3.new(2.010676682, 4.00001144, -186.170898), "Home" -- Home team's coordinates
-    elseif player.Team and player.Team.Name == "Away" then
-        return Vector3.new(-0.214612424, 4.00001144, 186.203613), "Away" -- Away team's coordinates
+    if Player.Team and Player.Team.Name == "Home" then
+        return Vector3.new(2.010676682, 4.00001144, -186.170898) -- Home team's coordinates
+    elseif Player.Team and Player.Team.Name == "Away" then
+        return Vector3.new(-0.214612424, 4.00001144, 186.203613) -- Away team's coordinates
     end
-    return nil, nil
+    return nil
 end
-
--- Update character reference when it changes (e.g., after reset)
-player.CharacterAdded:Connect(function(newCharacter)
-    character = newCharacter
-end)
-
--- Event listener for key press
-userInputService.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.G and not gameProcessed then
-        local targetPosition, scoringTeam = getTargetPosition()
-        if targetPosition then
-            teleportAllBalls(targetPosition, scoringTeam)  -- Teleport all balls
-        end
-    end
-end)
-
--- Detect new footballs being added to Junk (without any print statements)
-game.Workspace.Junk.ChildAdded:Connect(function(child)
-    if child:IsA("Part") and child.Name == "Football" then
-        -- Here we do nothing as no print statement is required
-    end
-end)
-
-
-
-
-
-
-
-
-
-
-
---tp ball and hig
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
-
-local movementAndSpeedEnabled = false
-local hipHeightEnabled = false
-
-local Player = Players.LocalPlayer
 
 -- Function to toggle the hip height of the humanoid
 local function toggleHipHeight()
@@ -175,17 +125,13 @@ local function toggleHipHeight()
     if character then
         local humanoid = character:FindFirstChildOfClass("Humanoid")
         if humanoid then
-            if hipHeightEnabled then
-                humanoid.HipHeight = humanoid.HipHeight - 16
-            else
-                humanoid.HipHeight = humanoid.HipHeight + 16
-            end
+            humanoid.HipHeight = hipHeightEnabled and humanoid.HipHeight - 16 or humanoid.HipHeight + 16
             hipHeightEnabled = not hipHeightEnabled
         end
     end
 end
 
--- Function to toggle the movement and speed script
+-- Function to toggle movement and speed
 local function toggleMovementAndSpeed()
     movementAndSpeedEnabled = not movementAndSpeedEnabled
     toggleHipHeight()
@@ -194,34 +140,46 @@ end
 -- Function to move specific parts to the player's position
 local function movePartsToPlayer()
     local junkFolder = Workspace:FindFirstChild("Junk")
-    
     if junkFolder and junkFolder:IsA("Folder") then
-        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            local playerPosition = Player.Character.HumanoidRootPart.Position
-            
-            for _, obj in pairs(junkFolder:GetDescendants()) do
-                if obj:IsA("BasePart") and (obj.Name == "kick1" or obj.Name == "kick2" or obj.Name == "kick3" or obj.Name == "Football") then
-                    obj.Position = playerPosition
-                end
+        local playerPosition = Player.Character.HumanoidRootPart.Position
+        for _, obj in pairs(junkFolder:GetDescendants()) do
+            if obj:IsA("BasePart") and (obj.Name == "kick1" or obj.Name == "kick2" or obj.Name == "kick3" or obj.Name == "Football") then
+                obj.Position = playerPosition
             end
-        else
-            print("Player character or HumanoidRootPart not found")
         end
     else
         print("Junk folder not found in Workspace")
     end
 end
 
--- Connect keybinds and events
+-- Event listeners for key inputs
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
-    if input.KeyCode == Enum.KeyCode.H then
+    if input.KeyCode == Enum.KeyCode.G then
+        local targetPosition = getTargetPosition()
+        if targetPosition then
+            teleportAllBalls(targetPosition)
+        end
+    elseif input.KeyCode == Enum.KeyCode.H then
         toggleMovementAndSpeed()
     elseif input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
         movePartsToPlayer()
     end
 end)
+
+-- Update character reference when it changes (e.g., after reset)
+Player.CharacterAdded:Connect(function(newCharacter)
+    Player.Character = newCharacter
+end)
+
+-- Detect new footballs being added to Junk (no print statement required)
+Workspace.Junk.ChildAdded:Connect(function(child)
+    if child:IsA("Part") and child.Name == "Football" then
+        -- Silent handling
+    end
+end)
+
 
 
 ---one good farming xp 2 players use same
@@ -792,5 +750,6 @@ InterfaceManager:SetFolder("FluentScriptHub")
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 
 Window:SelectTab(1)
-
-warn ("end")
+warn ("-------------------------------------------------------------------------------------------------------------------")
+warn ("-------------------------------------------------------------------------------------------------------------------")
+warn ("-------------------------------------------------------------------------------------------------------------------")
