@@ -422,8 +422,23 @@ end)
 
 
 
+--rj 
 
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local PlaceId = game.PlaceId
 
+-- Funkcja wykonująca rejoin
+local function rejoinGame()
+    TeleportService:Teleport(PlaceId, Players.LocalPlayer)
+end
+
+-- Wykrywanie naciśnięcia klawisza "J"
+game:GetService("UserInputService").InputBegan:Connect(function(input, isProcessed)
+    if not isProcessed and input.KeyCode == Enum.KeyCode.J then
+        rejoinGame()
+    end
+end)
 
 
 --gui
