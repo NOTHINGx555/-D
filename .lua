@@ -94,7 +94,6 @@ local function teleportAllBalls(targetPosition, scoringTeam)
         -- Teleport each ball to the target position
         for _, ball in pairs(balls) do
             ball.Position = targetPosition
-            print("Ball teleported to: " .. tostring(targetPosition))
 
             if scoringTeam == "Home" then
                 print("Home")
