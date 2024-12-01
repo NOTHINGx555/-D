@@ -94,12 +94,6 @@ local function teleportAllBalls(targetPosition, scoringTeam)
         -- Teleport each ball to the target position
         for _, ball in pairs(balls) do
             ball.Position = targetPosition
-
-            if scoringTeam == "Home" then
-                print("Home")
-            elseif scoringTeam == "Away" then
-                print("Away")
-            end
         end
 
         -- Fire the remote event to notify the server of the new positions
@@ -107,8 +101,6 @@ local function teleportAllBalls(targetPosition, scoringTeam)
         if remoteEvent then
             remoteEvent:FireServer(targetPosition)
         end
-    else
-        print("No balls found in the Junk folder.")
     end
 end
 
@@ -118,8 +110,6 @@ local function getTargetPosition()
         return Vector3.new(2.010676682, 4.00001144, -186.170898), "Home" -- Home team's coordinates
     elseif player.Team and player.Team.Name == "Away" then
         return Vector3.new(-0.214612424, 4.00001144, 186.203613), "Away" -- Away team's coordinates
-    else
-        print("None")
     end
     return nil, nil
 end
@@ -139,11 +129,13 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Print a message when a new football is added to the "Junk" folder
+-- Detect new footballs being added to Junk (without any print statements)
 game.Workspace.Junk.ChildAdded:Connect(function(child)
     if child:IsA("Part") and child.Name == "Football" then
+        -- Here we do nothing as no print statement is required
     end
 end)
+
 
 
 
