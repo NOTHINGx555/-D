@@ -429,6 +429,7 @@ local Window = Fluent:CreateWindow({
 -- Add tabs
 local Tabs = {
     tab2 = Window:AddTab({ Title = "Custom Hitbox", Icon = "play" }),
+    Main = Window:AddTab({ Title = "Football Controls", Icon = "unlock" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -598,7 +599,173 @@ Colorpicker:OnChanged(function()
     end
 end)
 
+-- Initialize variables
+local kickSpeed = 50  -- Default value for kick speed
+local verticalMoveAmount = 50  -- Default vertical move amount for the football
+local controlEnabled = false  -- Default value for control toggle (off)
+local player = game.Players.LocalPlayer
+local humanoid
+local humanoidRootPart
+local junkFolder = game.Workspace:WaitForChild("Junk")  -- Folder where all footballs are stored
+local UserInputService = game:GetService("UserInputService")  -- Correct service reference
 
+-- Function to set up the humanoid and character variables
+local function setupCharacter(character)
+    humanoid = character:WaitForChild("Humanoid")
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    
+    if controlEnabled then
+        humanoid.WalkSpeed = 0
+    else
+        humanoid.WalkSpeed = 16
+    end
+end
+
+-- Event listener for when the player's character is added (or respawns)
+player.CharacterAdded:Connect(function(character)
+    setupCharacter(character)
+end)
+
+-- Initialize the character on the first load (in case the player is already loaded in)
+if player.Character then
+    setupCharacter(player.Character)
+end
+
+-- Add a slider to control the kick speed
+local Slider = Tabs.Main:AddInput("Slider", {
+    Title = "Speed",
+    Description = "20-1000",
+    Default = 50,
+    Min = 20,
+    Max = 1000,
+    Rounding = 1,
+    Callback = function(Value)
+        kickSpeed = Value  -- Update kickSpeed based on slider value
+    end
+})
+
+-- Add a slider to control the vertical move amount for the ball
+local VerticalSlider = Tabs.Main:AddInput("VerticalSlider", {
+    Title = "up|down",
+    Description = "20-600",
+    Default = 50,  -- Default vertical move amount
+    Min = 20,  -- Minimum move amount
+    Max = 600,  -- Maximum move amount
+    Rounding = 1,
+    Callback = function(Value)
+        verticalMoveAmount = Value  -- Update verticalMoveAmount based on slider value
+    end
+})
+
+local function startControlLoop()
+    controlCoroutine = coroutine.create(function()
+        while controlEnabled do
+            if humanoid then
+                humanoid.WalkSpeed = 0
+            end
+            wait(0.01)  -- Short wait to prevent freezing
+        end
+    end)
+    coroutine.resume(controlCoroutine)  -- Start the coroutine
+end
+
+-- Function to toggle controls
+local function toggleControls()
+    controlEnabled = not controlEnabled  -- Toggle controlEnabled state
+    
+    if controlEnabled then
+        -- When controls are ON: Set WalkSpeed to 0 and start the control loop
+        if humanoid then
+            humanoid.WalkSpeed = 0
+        end
+        startControlLoop()
+    else
+        -- When controls are OFF: Restore normal movement by setting WalkSpeed to 16
+        if humanoid then
+            humanoid.WalkSpeed = 16
+        end
+        -- Stop the control loop by ending the coroutine
+        controlCoroutine = nil
+    end
+end
+
+-- Function to move the football up or down
+local function moveFootballVertical(direction)
+    if humanoidRootPart then
+        -- Iterate through all "Football" parts in the Junk folder
+        for _, football in pairs(junkFolder:GetChildren()) do
+            if football.Name == "Football" then
+                football.Anchored = false
+                local bodyVelocity = Instance.new("BodyVelocity")
+                -- Apply vertical movement force based on the slider value
+                local moveAmount = direction == "up" and verticalMoveAmount or -verticalMoveAmount
+                bodyVelocity.Velocity = Vector3.new(0, moveAmount, 0)  -- Only apply vertical force
+                bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+                bodyVelocity.Parent = football
+                game.Debris:AddItem(bodyVelocity, 0.1)
+            end
+        end
+    else
+        warn("HumanoidRootPart not found!")
+    end
+end
+
+-- Function to kick the football in a specific direction
+local function kickFootballInDirection(direction)
+    if humanoidRootPart then
+        local lookDirection
+        if direction == "forward" then
+            lookDirection = humanoidRootPart.CFrame.LookVector
+        elseif direction == "backward" then
+            lookDirection = -humanoidRootPart.CFrame.LookVector
+        elseif direction == "left" then
+            lookDirection = -humanoidRootPart.CFrame.RightVector
+        elseif direction == "right" then
+            lookDirection = humanoidRootPart.CFrame.RightVector
+        end
+        
+        -- Iterate through all "Football" parts in the Junk folder
+        for _, football in pairs(junkFolder:GetChildren()) do
+            if football.Name == "Football" then
+                football.Anchored = false
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.Velocity = lookDirection * kickSpeed  -- Use kickSpeed from the slider
+                bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+                bodyVelocity.Parent = football
+                game.Debris:AddItem(bodyVelocity, 0.1)
+            end
+        end
+    else
+        warn("HumanoidRootPart not found!")
+    end
+end
+
+-- Key bindings to kick the football in different directions using W, A, S, D
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if controlEnabled then  -- Only allow kicking if controls are enabled
+        if input.KeyCode == Enum.KeyCode.W and not gameProcessed then
+            kickFootballInDirection("forward")  -- Kick forward when "W" is pressed
+        elseif input.KeyCode == Enum.KeyCode.S and not gameProcessed then
+            kickFootballInDirection("backward")  -- Kick backward when "S" is pressed
+        elseif input.KeyCode == Enum.KeyCode.A and not gameProcessed then
+            kickFootballInDirection("left")  -- Kick left when "A" is pressed
+        elseif input.KeyCode == Enum.KeyCode.D and not gameProcessed then
+            kickFootballInDirection("right")  -- Kick right when "D" is pressed
+        end
+        
+        -- Move the football up or down with X and Z keys
+        if input.KeyCode == Enum.KeyCode.X and not gameProcessed then
+            moveFootballVertical("up")  -- Move ball up when "X" is pressed
+        elseif input.KeyCode == Enum.KeyCode.Z and not gameProcessed then
+            moveFootballVertical("down")  -- Move ball down when "Z" is pressed
+        end
+    end
+    
+    -- Toggle controls when the "F" key is pressed
+    if input.KeyCode == Enum.KeyCode.Two and not gameProcessed then
+        toggleControls()
+    end
+end)
 
 
 InterfaceManager:SetLibrary(Fluent)
