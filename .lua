@@ -73,36 +73,43 @@ local replicatedStorage = game:GetService("ReplicatedStorage")
 -- Unique identifier for this specific functionality
 local UNIQUE_EVENT_NAME = "UpdateBallPosition_Specific"
 
--- Function to find the ball in the Junk folder
-local function findBall()
+-- Function to find all balls in the Junk folder
+local function findBalls()
     local junkFolder = game.Workspace:FindFirstChild("Junk")
+    local balls = {}
     if junkFolder then
-        local football = junkFolder:FindFirstChild("Football")
-        if football and football:IsA("Part") then
-            return football
+        for _, obj in pairs(junkFolder:GetChildren()) do
+            if obj:IsA("Part") and obj.Name == "Football" then
+                table.insert(balls, obj)
+            end
         end
     end
-    return nil
+    return balls
 end
 
--- Function to teleport the ball to the specific coordinates
-local function teleportBall(targetPosition, scoringTeam)
-    local ball = findBall()
-    if ball then
-        ball.Position = targetPosition
+-- Function to teleport all balls to the specific coordinates
+local function teleportAllBalls(targetPosition, scoringTeam)
+    local balls = findBalls()  -- Get all balls in the "Junk" folder
+    if #balls > 0 then
+        -- Teleport each ball to the target position
+        for _, ball in pairs(balls) do
+            ball.Position = targetPosition
+            print("Ball teleported to: " .. tostring(targetPosition))
 
-        if scoringTeam == "Home" then
-            print("Home")
-        elseif scoringTeam == "Away" then
-            print("Away")
+            if scoringTeam == "Home" then
+                print("Home")
+            elseif scoringTeam == "Away" then
+                print("Away")
+            end
         end
 
+        -- Fire the remote event to notify the server of the new positions
         local remoteEvent = replicatedStorage:FindFirstChild(UNIQUE_EVENT_NAME)
         if remoteEvent then
             remoteEvent:FireServer(targetPosition)
         end
     else
-        print("Ball not found")
+        print("No balls found in the Junk folder.")
     end
 end
 
@@ -113,7 +120,7 @@ local function getTargetPosition()
     elseif player.Team and player.Team.Name == "Away" then
         return Vector3.new(-0.214612424, 4.00001144, 186.203613), "Away" -- Away team's coordinates
     else
-        print("NONE")
+        print("None")
     end
     return nil, nil
 end
@@ -128,10 +135,17 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.G and not gameProcessed then
         local targetPosition, scoringTeam = getTargetPosition()
         if targetPosition then
-            teleportBall(targetPosition, scoringTeam)
+            teleportAllBalls(targetPosition, scoringTeam)  -- Teleport all balls
         end
     end
 end)
+
+-- Print a message when a new football is added to the "Junk" folder
+game.Workspace.Junk.ChildAdded:Connect(function(child)
+    if child:IsA("Part") and child.Name == "Football" then
+    end
+end)
+
 
 
 --ball track
