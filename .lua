@@ -307,36 +307,61 @@ local humanoid = character:WaitForChild("Humanoid")
 local defaultSpeed = humanoid.WalkSpeed
 
 -- Boost prędkości
-local boostSpeed = 260 -- Zmienna dla boosta
-local boostDuration = 0.33 -- Czas trwania boosta w sekundach
-local waitTime = 0.44 -- Czas oczekiwania przed aktywacją boosta
+local boostSpeed = 260
+local boostDuration = 0.33
+local waitTime = 0.36
 
 -- Zmienna do zapobiegania spamowi
 local canActivateBoost = true
+
+-- Zmienna do sprawdzania, czy boost jest aktywny
+local isBoostActive = false
 
 -- Funkcja do aktywowania boosta
 local function activateBoost()
     if canActivateBoost then
         canActivateBoost = false -- Zablokuj kolejne aktywacje
+        isBoostActive = true -- Ustaw flagę, że boost jest aktywny
         wait(waitTime) -- Czeka przed aktywacją boosta
         humanoid.WalkSpeed = boostSpeed
         wait(boostDuration)
         humanoid.WalkSpeed = defaultSpeed
         wait(waitTime) -- Czeka przed ponowną aktywacją
         canActivateBoost = true -- Pozwól na kolejną aktywację
+        isBoostActive = false -- Zresetuj flagę boosta
     end
 end
 
--- Przykład aktywacji boosta po kliknięciu
+-- Zablokowanie wejścia klawiszy Q i skoku, gdy boost jest aktywny
 local userInputService = game:GetService("UserInputService")
 
 userInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed then
+        -- Zablokowanie klawisza Q
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Q and isBoostActive then
+            return Enum.ContextActionResult.Sink -- Zatrzymaj dalsze przetwarzanie tego wejścia
+        end
+        
+        -- Zablokowanie skoku
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space and isBoostActive then
+            humanoid.Jump = false -- Zatrzymaj skok, jeśli boost jest aktywny
+            return Enum.ContextActionResult.Sink -- Zatrzymaj dalsze przetwarzanie tego wejścia
+        end
+        
+        -- Aktywacja boosta przez naciśnięcie F
         if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
             activateBoost()
         end
     end
 end)
+
+-- Dodatkowo blokowanie skoku, kiedy boost jest aktywny
+humanoid:GetPropertyChangedSignal("Jump"):Connect(function()
+    if isBoostActive then
+        humanoid.Jump = false -- Zapobiegaj skokom podczas boosta
+    end
+end)
+
 
 
 
