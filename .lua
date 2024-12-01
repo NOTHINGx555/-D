@@ -1,4 +1,28 @@
 warn ("start")
+
+
+
+--delete loding... 
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Referencja do ekranu ładowania
+local loadingScreen = playerGui:FindFirstChild("LoadingScreen")
+
+-- Funkcja do usuwania LoadingScreen
+local function deleteLoadingScreen()
+    if loadingScreen then
+        loadingScreen:Destroy()
+        print("LoadingScreen delete")
+    else
+        print("Not found LoadingScreen")
+    end
+end
+
+-- Wywołanie funkcji usuwającej LoadingScreen
+deleteLoadingScreen()
+
+
 --delete  and set color stamina and power
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
