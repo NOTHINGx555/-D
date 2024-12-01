@@ -304,9 +304,9 @@ local humanoid = character:WaitForChild("Humanoid")
 local defaultSpeed = humanoid.WalkSpeed
 
 -- Boost prędkości
-local boostSpeed = 250 -- Zmienna dla boosta
-local boostDuration = 0.3 -- Czas trwania boosta w sekundach
-local waitTime = 0.7 -- Czas oczekiwania przed aktywacją boosta
+local boostSpeed = 260 -- Zmienna dla boosta
+local boostDuration = 0.33 -- Czas trwania boosta w sekundach
+local waitTime = 0.44 -- Czas oczekiwania przed aktywacją boosta
 
 -- Zmienna do zapobiegania spamowi
 local canActivateBoost = true
