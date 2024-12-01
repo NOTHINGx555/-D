@@ -2,30 +2,18 @@ warn ("start")
 
 
 
---delete loding... 
+--delete loding... i ustawia kolory Power i Stamina
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Referencja do ekranu ładowania
+-- Usuwanie ekranu ładowania
 local loadingScreen = playerGui:FindFirstChild("LoadingScreen")
-
--- Funkcja do usuwania LoadingScreen
-local function deleteLoadingScreen()
-    if loadingScreen then
-        loadingScreen:Destroy()
-        print("LoadingScreen delete")
-    else
-        print("Not found LoadingScreen")
-    end
+if loadingScreen then
+    loadingScreen:Destroy()
+    print("LoadingScreen deleted")
+else
+    print("LoadingScreen not found")
 end
-
--- Wywołanie funkcji usuwającej LoadingScreen
-deleteLoadingScreen()
-
-
---delete  and set color stamina and power
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
 
 -- Referencje do GameGui
 local gameGui = playerGui:FindFirstChild("GameGui")
@@ -74,7 +62,7 @@ local function setGradient(frame, startColor, endColor)
             newGradient.Color = ColorSequence.new(startColor, endColor)
             newGradient.Rotation = 90
             newGradient.Parent = progressBar
-            print("Set Color " .. frame.Name)
+            print("Set Color for " .. frame.Name)
         else
             warn(frame.Name .. " ProgressBar not found")
         end
@@ -86,6 +74,7 @@ end
 -- Ustawienie gradientu dla Power i Stamina
 setGradient(energyBars:FindFirstChild("Power"), Color3.new(0, 0, 0), Color3.new(1, 0, 0)) -- Black to Red
 setGradient(energyBars:FindFirstChild("Stamina"), Color3.new(0, 0, 0), Color3.new(1, 1, 1)) -- Black to White
+
 
 
 --- gol G away and home auto 
@@ -347,7 +336,7 @@ end
 -- Podłączenie funkcji do zdarzenia wciśnięcia klawisza
 game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
 
-warn ("beta v2 speed load")
+
 --beta speed 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -408,6 +397,38 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, isProcess
     end
 end)
 
+
+--ball track
+local function checkAndSetTackleHitboxSize(hitbox)
+    -- Sprawdzamy, czy rozmiar hitboxu nie jest już równy (10, 38, 6)
+    if hitbox.Size ~= Vector3.new(10, 38, 6) then
+        -- Jeśli rozmiar jest inny, ustawiamy go na (10, 38, 6)
+        hitbox.Size = Vector3.new(10, 38, 6)
+    end
+end
+-- Funkcja do obsługi postaci gracza
+local function onCharacterAdded(character)
+    -- Czekamy na obiekt TackleHitbox w postaci gracza
+    local hitbox = character:WaitForChild("TackleHitbox", 5)  -- Timeout 5 sekund dla bezpieczeństwa
+    
+    if hitbox then
+        -- Ustawiamy poprawny rozmiar hitboxu
+        checkAndSetTackleHitboxSize(hitbox)
+        
+        -- Obserwujemy zmiany rozmiaru i automatycznie poprawiamy je, jeśli zajdzie potrzeba
+        hitbox:GetPropertyChangedSignal("Size"):Connect(function()
+            checkAndSetTackleHitboxSize(hitbox)
+        end)
+    end
+end
+-- Podpinamy obsługę zdarzenia do LocalPlayer
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(onCharacterAdded)
+
+-- Jeśli postać już istnieje, obsługujemy ją od razu
+if player.Character then
+    onCharacterAdded(player.Character)
+end
 
 --gui
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
