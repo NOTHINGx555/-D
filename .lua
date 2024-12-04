@@ -309,7 +309,7 @@ local defaultSpeed = humanoid.WalkSpeed
 -- Boost prędkości
 local boostSpeed = 260
 local boostDuration = 0.33
-local waitTime = 0.36
+local waitTime = 0.34
 
 -- Zmienna do zapobiegania spamowi
 local canActivateBoost = true
