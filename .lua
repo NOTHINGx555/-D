@@ -67,8 +67,7 @@ local function onPlayerRespawned()
     -- Wait for necessary parts to load before teleporting
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-    -- Ensure we teleport balls after the character is fully loaded
-    teleportAllBalls()
+
 
     -- Detect when new footballs are added (after player reset)
     local childAddedConnection
@@ -104,8 +103,6 @@ end)
 Workspace.ChildAdded:Connect(function(child)
     if child:IsA("Part") and child.Name == "Football" then
         print("ball added")
-        -- If a new football is added (e.g., on respawn), teleport it to the target position
-        teleportAllBalls()
     end
 end)
 
