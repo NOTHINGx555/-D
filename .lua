@@ -58,7 +58,7 @@ end
 local function onPlayerRespawned()
     local character = Player.Character or Player.CharacterAdded:Wait()
     character:WaitForChild("HumanoidRootPart")
-    wait(1) -- Ensure everything is loaded
+    wait(0.1) -- Ensure everything is loaded
     teleportAllBalls()
 end
 
