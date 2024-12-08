@@ -26,7 +26,7 @@ end
 local function teleportAllBalls()
     local targetPosition
 
-    -- Determine the target position based on the player's team
+    -- Dynamically determine the target position based on the player's team
     if Player.Team then
         if Player.Team.Name == "Home" then
             targetPosition = Vector3.new(2.010676682, 4.00001144, -186.170898)
@@ -54,12 +54,18 @@ local function teleportAllBalls()
     end
 end
 
--- Handle player reset and respawn
+-- Handle player respawn
 local function onPlayerRespawned()
     local character = Player.Character or Player.CharacterAdded:Wait()
-    character:WaitForChild("HumanoidRootPart") -- Ensure the character is fully loaded
-    wait(1) -- Short delay for stability
-    teleportAllBalls() -- Teleport balls after respawn
+    character:WaitForChild("HumanoidRootPart")
+    wait(1) -- Ensure everything is loaded
+    teleportAllBalls()
+end
+
+-- Handle team changes
+local function onTeamChanged()
+    print("Player's team has changed!")
+    teleportAllBalls()
 end
 
 -- Trigger teleportation when the user presses 'G'
@@ -73,6 +79,9 @@ end)
 -- Connect to the player's respawn event
 Player.CharacterAdded:Connect(onPlayerRespawned)
 
+-- Listen for team changes
+Player:GetPropertyChangedSignal("Team"):Connect(onTeamChanged)
+
 -- Detect new footballs being added to the Workspace
 Workspace.ChildAdded:Connect(function(child)
     if child:IsA("Part") and child.Name == "Football" then
@@ -80,6 +89,7 @@ Workspace.ChildAdded:Connect(function(child)
         teleportAllBalls()
     end
 end)
+
 
 
 
